@@ -133,6 +133,9 @@
 #define APR_WANT_STRFUNC
 #include "apr_want.h"
 #include "apr_tables.h"
+#include "apr_base64.h"
+
+#include "apreq_util.h"
 
 #include "httpd.h"
 #include "http_config.h"
@@ -194,8 +197,10 @@ char* create_des_key(apr_pool_t *pool, char *ascii_key)
 // foo/bar/%s, then replace the %s with r->uri.
 static void compose_and_set_redirect(request_rec *r, const char* redirect) {
 	char* composed_redirect = NULL;
+        char* encoded_uri = NULL;
 	if (ap_strstr_c(redirect, "%s")) {
-		composed_redirect = apr_psprintf(r->pool, redirect, r->uri);
+                encoded_uri = apreq_escape(r->pool, r->unparsed_uri, strlen(r->unparsed_uri));
+		composed_redirect = apr_psprintf(r->pool, redirect, r->unparsed_uri);
  	}
         apr_table_setn(r->headers_out, "Location", composed_redirect ? composed_redirect : redirect);
 }
